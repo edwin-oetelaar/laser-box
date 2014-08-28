@@ -1,3 +1,9 @@
+Wat je geinstalleerd moet hebben
+================================
+
+python en WxPython
+
+
 Wie is wie
 ==========
 
