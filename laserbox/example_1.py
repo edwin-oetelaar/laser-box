@@ -4,6 +4,22 @@
 
 import Tkinter
 import argparse
+import collections
+
+
+class Params(object):
+    def __init__(self):
+        self.pcb_x = 100
+        self.pcb_y = 160
+        self.pcb_h = 25
+        self.pcb_spacing = 2
+        self.hole_x_spacing = 90
+        self.hole_y_spacing = 150
+        self.hole_diameter = 3
+
+class Plaatje(object):
+    def __init__(self):
+        pass
 
 
 def my_hover(event):
@@ -12,27 +28,40 @@ def my_hover(event):
     tags = event.widget.gettags('current')
     print 'tags of selected ='
     print tags
+    print event.widget.coords(id)
     # if 'text' in tags:  # the current item is the text in the box
     # id = self.canvas.find_withtag(self.canvas.itemcget(id, 'text'))
     # return id
 
 
-def doe_het_echte_werk(canvas=None, x=10, y=10, h=3):
-    if canvas:
-        # canvas.create_polygon([0, 0, 0, 10, 20, 30, 40, 50, 0, 0], outline='red', fill='green')
+def doe_het_echte_werk(canvas=None, p=None):
+    # assert parameters is Params
 
-        scalefactor = 10
+    if canvas:
+        scalefactor = 1
         spacing = 5
 
-        front = [0, 0, x * scalefactor, y * scalefactor]  # x by y
-        back = [0, 0, x * scalefactor, y * scalefactor]  # x by y
-        left = [0, 0, h * scalefactor, y * scalefactor]  #
-        right = [0, 0, h * scalefactor, y * scalefactor]  #
-        top = [0, 0, x * scalefactor, h * scalefactor]  #
-        bot = [0, 0, x * scalefactor, h * scalefactor]  #
+        front = [0, 0, p.pcb_x, p.pcb_y]  # x by y
+        back = [0, 0, p.pcb_x, p.pcb_y]  # x by y
+        left = [0, 0, p.pcb_h, p.pcb_y]  #
+        right = [0, 0, p.pcb_h, p.pcb_y]  #
+        top = [0, 0, p.pcb_x, p.pcb_h]  #
+        bot = [0, 0, p.pcb_x, p.pcb_h]  #
 
-        offset = 0
-        parameters = {'outline': 'red', 'fill': 'blue', 'activefill': 'gray'}
+        # calculate mounting hole
+        cx = p.pcb_x / 2.0
+        dy = p.pcb_y / 2.0
+
+        pcb_holes = list()
+        hx = p.hole_x_spacing / 2.0
+        hy = p.hole_y_spacing / 2.0
+
+        pcb_holes.append((cx - hx, dy - hy, p.hole_diameter, 'gat-1'))
+        pcb_holes.append((cx - hx, dy + hy, p.hole_diameter, 'gat-2'))
+        pcb_holes.append((cx + hx, dy - hy, p.hole_diameter, 'gat-3'))
+        pcb_holes.append((cx + hx, dy + hy, p.hole_diameter, 'gat-4'))
+
+        parameters = {'outline': '#FFFFFF', 'fill': '#60e060', 'activefill': '#404080'}
         front_rect = canvas.create_rectangle(front, tag='FRONT', **parameters)
         print front_rect
         canvas.move(front_rect, spacing, spacing)
@@ -40,6 +69,8 @@ def doe_het_echte_werk(canvas=None, x=10, y=10, h=3):
         mybox = canvas.bbox(front_rect)
         back_rect = canvas.create_rectangle(back, tag='BACK', **parameters)
         canvas.move(back_rect, mybox[2] + spacing, spacing)
+        # gaten in de back
+        # for h in pcb_holes:
 
         mybox = canvas.bbox(back_rect)
         left_rect = canvas.create_rectangle(left, tag='LEFT', **parameters)
@@ -59,6 +90,9 @@ def doe_het_echte_werk(canvas=None, x=10, y=10, h=3):
         bottom_rect = canvas.create_rectangle(bot, tag='BOTTOM', **parameters)
         canvas.move(bottom_rect, mybox[0], mybox[3] + spacing)
 
+        mybox = canvas.bbox(right_rect)
+        pcb_rect = canvas.create_rectangle(bot, tag='PCB', **parameters)
+        canvas.move(pcb_rect, mybox[2] + spacing, spacing)
 
         # canvas.bind(front_rect, my_hover)
 
@@ -94,11 +128,18 @@ class my_app(Tkinter.Tk):
 
         self.grid_columnconfigure(0, weight=1)
         self.canvas1 = Tkinter.Canvas(self)
-        self.canvas1.config(background="black")
+        self.canvas1.config(background="#3c88c9")
         self.canvas1.grid(row=2, column=0, columnspan=2, sticky='NSEW')
         self.grid_rowconfigure(2, weight=1)
 
-        doe_het_echte_werk(canvas=self.canvas1, x=10, y=20, h=2.5)
+        params = Params()
+        params.pcb_x=160
+        params.pcb_y=100
+        params.front_thickness = 6
+        params.back_thickness = 6
+        params.wall_thickness = 3
+
+        doe_het_echte_werk(canvas=self.canvas1, p=params)
 
     def OnButtonClick(self):
         self.labelVariable.set(self.entryVariable.get() + " (You clicked the button)")
